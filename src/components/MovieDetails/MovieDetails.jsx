@@ -1,38 +1,41 @@
-import { Suspense, useRef } from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Outlet, Link, useLocation, useParams } from 'react-router-dom';
 import { getDetails } from 'services/GetMoviesAPI';
-
-import s from './MovieDetails.module.css';
+import styles from './MovieDetails.module.css';
 
 const MovieDetails = () => {
   const [movie, setMovie] = useState(null);
   const { movieId } = useParams();
   const location = useLocation();
-  const backLink = useRef(location.state?.from ?? '/');
+  const backLinkRef = useRef(location.state?.from ?? '/');
 
   useEffect(() => {
-    getDetails(movieId).then(setMovie);
+    const fetchMovieDetails = async () => {
+      const data = await getDetails(movieId);
+      setMovie(data);
+    };
+
+    fetchMovieDetails();
   }, [movieId]);
 
   if (!movie) {
-    return;
+    return null;
   }
 
-  function formatAsPercent(num) {
+  const formatAsPercent = num => {
     return new Intl.NumberFormat('default', {
       style: 'percent',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(num / 10);
-  }
+  };
 
   return (
     <>
-      <div className={s.wrapper}>
+      <div className={styles.wrapper}>
         <div>
-          <Link to={backLink.current} className={s.link}>
-            <button className={s.backBtn}>← Go back</button>
+          <Link to={backLinkRef.current} className={styles.link}>
+            <button className={styles.backBtn}>← Go back</button>
           </Link>
           <img
             src={
@@ -40,12 +43,12 @@ const MovieDetails = () => {
                 ? `https://www.themoviedb.org/t/p/w500/${movie.poster_path}`
                 : `https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg`
             }
-            alt={`${movie.title}`}
+            alt={movie.title}
           />
         </div>
-        <div className={s.details}>
+        <div className={styles.details}>
           <h2>
-            {movie.title} ({movie.release_date.slice(0, 4)})
+            {movie.title} ({new Date(movie.release_date).getFullYear()})
           </h2>
           <p>User score: {formatAsPercent(movie.vote_average)}</p>
           <h3>Overview</h3>
@@ -55,14 +58,14 @@ const MovieDetails = () => {
         </div>
       </div>
 
-      <div className={s.additional}>
+      <div className={styles.additional}>
         <h2>Additional information</h2>
         <ul>
           <li>
-            <Link to={'cast'}>Cast</Link>
+            <Link to="cast">Cast</Link>
           </li>
           <li>
-            <Link to={'reviews'}>Reviews</Link>
+            <Link to="reviews">Reviews</Link>
           </li>
         </ul>
       </div>

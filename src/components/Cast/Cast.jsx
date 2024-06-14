@@ -1,41 +1,45 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { getCast } from 'services/GetMoviesAPI';
-
-import s from './Cast.module.css';
+import styles from './Cast.module.css';
 
 const Cast = () => {
-  const [movieCast, setMovieCast] = useState(null);
+  const [cast, setCast] = useState([]);
   const { movieId } = useParams();
 
   useEffect(() => {
-    getCast(movieId).then(setMovieCast);
+    const fetchCast = async () => {
+      const data = await getCast(movieId);
+      setCast(data);
+    };
+
+    fetchCast();
   }, [movieId]);
 
-  if (!movieCast) {
-    return;
+  if (!cast.length) {
+    return null;
   }
 
   return (
-    <>
-      <ul className={s.wrapper}>
-        {movieCast.map(actor => (
-          <li key={actor.id} className={s.item}>
+    <div>
+      <ul className={styles.wrapper}>
+        {cast.map(({ id, profile_path, original_name, name, character }) => (
+          <li key={id} className={styles.item}>
             <img
-              className={s.image}
+              className={styles.image}
               src={
-                actor.profile_path
-                  ? `https://www.themoviedb.org/t/p/w500/${actor.profile_path}`
+                profile_path
+                  ? `https://www.themoviedb.org/t/p/w500/${profile_path}`
                   : `https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg`
               }
-              alt={actor.original_name}
+              alt={original_name}
             />
-            <h3>{actor.name}</h3>
-            <p>As: {actor.character}</p>
+            <h3>{name}</h3>
+            <p>As: {character}</p>
           </li>
         ))}
       </ul>
-    </>
+    </div>
   );
 };
 
