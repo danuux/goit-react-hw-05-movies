@@ -1,40 +1,29 @@
-import React, { useEffect, useState } from 'react';
-import { GetTrendingDay } from 'services/GetMoviesAPI';
-import styles from './Home.module.css';
-import { Link } from 'react-router-dom';
+import { getTrending } from 'services/GetMoviesAPI';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 
-const Home = () => {
-  const [movies, setMovies] = useState();
+const useTrending = () => {
+  const [trendingMovies, setTrendingMovies] = useState([]);
+  const location = useLocation();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await GetTrendingDay();
-        setMovies(data);
-      } catch (error) {
-        console.log('error');
-      }
-    };
-
-    fetchData();
+    getTrending().then(setTrendingMovies);
   }, []);
-  return (
-    <div className={styles.container}>
-      <h1 className={styles.title}>Trending today</h1>
 
-      {movies ? (
-        <ul className={styles.items}>
-          {movies.map(movie => (
-            <li className={styles.item} key={movie.id}>
-              <Link to={`movies/${movie.id.toString()}`}>{movie.title}</Link>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
+  return (
+    <>
+      <h1>Trending today</h1>
+      <ul>
+        {trendingMovies.map(movie => (
+          <li key={movie.id}>
+            <NavLink to={`/movies/${movie.id}`} state={{ from: location }}>
+              {movie.title}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 };
 
-export default Home;
+export default useTrending;
